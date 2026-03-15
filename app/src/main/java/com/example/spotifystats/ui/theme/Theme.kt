@@ -1,5 +1,6 @@
 package com.example.spotifystats.ui.theme
 
+import android.R
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,14 +13,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = Shego,
     secondary = PurpleGrey80,
+    onPrimary = Black,
+    background = Black,
     tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary = Shego,
     secondary = PurpleGrey40,
+    onPrimary = Black,
+    background = White,
     tertiary = Pink40
 
     /* Other default colors to override
@@ -37,7 +42,7 @@ private val LightColorScheme = lightColorScheme(
 fun SpotifyStatsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
