@@ -28,10 +28,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.spotifystats.R
 import com.example.spotifystats.ui.theme.SpotifyStatsTheme
 @Composable
-fun LoginScreen(){
+fun LoginScreen(
+    navController: NavController
+){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -63,7 +66,9 @@ fun LoginScreen(){
         Spacer(Modifier.weight(1f))
 
         Button(
-            onClick = {},
+            onClick = {
+                navController.navigate("HomeScreen")
+            },
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,6 +104,8 @@ fun LoginScreen(){
 @Composable
 fun LoginScreenPreview() {
     SpotifyStatsTheme() {
-        LoginScreen()
+        LoginScreen(
+            navController = androidx.navigation.compose.rememberNavController()
+        )
     }
 }
