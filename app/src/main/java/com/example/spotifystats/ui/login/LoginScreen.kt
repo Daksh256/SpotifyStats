@@ -1,6 +1,9 @@
 package com.example.spotifystats.ui.login
 
-import android.content.res.Configuration
+
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,22 +22,48 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.spotifystats.BuildConfig
 import com.example.spotifystats.R
 import com.example.spotifystats.ui.theme.SpotifyStatsTheme
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import com.spotify.sdk.android.auth.AuthorizationResponse
+
+
 @Composable
 fun LoginScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: LoginViewModel = viewModel()
 ){
+    val context = LocalContext.current
+
+    val loginState by viewModel.loginState.collectAsState()
+
+    LaunchedEffect(loginState) {
+        if(loginState is LoginState.Success){
+            navController.navigate("HomeScreen")
+        }
+    }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleSpotifyLogin(result.resultCode, result.data)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -67,7 +96,14 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                navController.navigate("HomeScreen")
+                val request = AuthorizationRequest.Builder(
+                    BuildConfig.SPOTIFY_CLIENT_ID,
+                    AuthorizationResponse.Type.CODE,
+                    "dakshstats://callback"
+                ).setScopes(arrayOf("user-top-read", "user-read-recently-played")).build()
+
+                val intent = AuthorizationClient.createLoginActivityIntent(context as Activity, request)
+                launcher.launch(intent)
             },
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier

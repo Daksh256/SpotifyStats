@@ -1,14 +1,21 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.example.spotifystats"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.spotifystats"
@@ -18,6 +25,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // 4. This reads the file safely now
+        val clientId = localProperties.getProperty("SPOTIFY_CLIENT_ID") ?: ""
+        buildConfigField("String", "SPOTIFY_CLIENT_ID", "\"$clientId\"")
+
+        manifestPlaceholders += mapOf(
+            "redirectSchemeName" to "dakshstats",
+            "redirectHostName" to "callback"
+        )
     }
 
     buildTypes {
@@ -38,10 +54,14 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+
+    //Spotify auth librarie
+    implementation("com.spotify.android:auth:2.1.1")
 
     //Navigation Libraries
     val nav_version = "2.7.7"
