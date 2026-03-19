@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 sealed class LoginState{
     object Idle : LoginState()
     object Loading : LoginState()
-    data class Success (val token : String) : LoginState()
+    data class Success (val authCode : String) : LoginState()
     data class Error(val message : String) : LoginState()
 }
 
@@ -26,10 +26,10 @@ class LoginViewModel : ViewModel(){
         val response = AuthorizationClient.getResponse(resultCode, intent)
 
         when (response.type) {
-            AuthorizationResponse.Type.TOKEN -> {
-                val token = response.accessToken
-                println("VIEWMODEL: SPOTIFY LOGIN SUCCESS! Token: $token")
-                _loginState.value = LoginState.Success(token)
+            AuthorizationResponse.Type.CODE -> {
+                val authCode = response.code
+                println("VIEWMODEL: SPOTIFY LOGIN SUCCESS! Token: $authCode")
+                _loginState.value = LoginState.Success(authCode)
             }
             AuthorizationResponse.Type.ERROR -> {
                 println("VIEWMODEL: SPOTIFY LOGIN ERROR: ${response.error}")
