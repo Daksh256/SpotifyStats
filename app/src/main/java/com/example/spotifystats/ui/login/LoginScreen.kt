@@ -2,6 +2,7 @@ package com.example.spotifystats.ui.login
 
 
 import android.app.Activity
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -55,15 +56,24 @@ fun LoginScreen(
     val loginState by viewModel.loginState.collectAsState()
 
     LaunchedEffect(loginState) {
-        if(loginState is LoginState.Success){
-            navController.navigate("HomeScreen")
+        if (loginState is LoginState.Success) {
+            val sharedPreferences =
+                context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
+
+            sharedPreferences.edit()
+                .putString("AUTH_CODE", (loginState as LoginState.Success).authCode).apply()
+
+            navController.navigate("HomeScreen") {
+                popUpTo("LoginScreen") { inclusive = true }
+            }
         }
     }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        viewModel.handleSpotifyLogin(result.resultCode, result.data)
-    }
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            viewModel.handleSpotifyLogin(result.resultCode, result.data)
+        }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -130,6 +140,7 @@ fun LoginScreen(
         Spacer(Modifier.weight(0.5f))
     }
 }
+
 
 
 @Preview(

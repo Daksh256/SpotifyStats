@@ -1,6 +1,8 @@
 package com.example.spotifystats.ui.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,10 +12,15 @@ import com.example.spotifystats.ui.login.LoginScreen
 @Composable
 fun AppNavigation(){
     val navController = rememberNavController()
+    val sharedPreferences = LocalContext.current.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
+
+    val savedCode = sharedPreferences.getString("AUTH_CODE", null)
+
+    val startScreen = if (savedCode != null) "HomeScreen" else "LoginScreen"
 
     NavHost(
         navController = navController,
-        startDestination = "LoginScreen",
+        startDestination = startScreen,
         builder = {
             composable("LoginScreen"){
                 LoginScreen(navController)
