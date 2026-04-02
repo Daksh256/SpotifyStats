@@ -14,9 +14,9 @@ fun AppNavigation(){
     val navController = rememberNavController()
     val sharedPreferences = LocalContext.current.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
 
-    val savedCode = sharedPreferences.getString("AUTH_CODE", null)
+    val savedToken = sharedPreferences.getString("REFRESH_TOKEN", null)
 
-    val startScreen = if (savedCode != null) "HomeScreen" else "LoginScreen"
+    val startScreen = if (savedToken != null) "HomeScreen" else "LoginScreen"
 
     NavHost(
         navController = navController,

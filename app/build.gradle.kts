@@ -30,6 +30,9 @@ android {
         val clientId = localProperties.getProperty("SPOTIFY_CLIENT_ID") ?: ""
         buildConfigField("String", "SPOTIFY_CLIENT_ID", "\"$clientId\"")
 
+        val clientSecret = localProperties.getProperty("SPOTIFY_CLIENT_SECRET") ?: ""
+        buildConfigField("String", "SPOTIFY_CLIENT_SECRET", "\"$clientSecret\"")
+
         manifestPlaceholders += mapOf(
             "redirectSchemeName" to "dakshstats",
             "redirectHostName" to "callback"
@@ -66,6 +69,10 @@ dependencies {
     //Navigation Libraries
     val nav_version = "2.7.7"
     implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    // Retrofit Libraries
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

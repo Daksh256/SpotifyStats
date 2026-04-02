@@ -57,11 +57,15 @@ fun LoginScreen(
 
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
+
+            val authCode = (loginState as LoginState.Success).authCode
+
             val sharedPreferences =
                 context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
 
-            sharedPreferences.edit()
-                .putString("AUTH_CODE", (loginState as LoginState.Success).authCode).apply()
+            sharedPreferences.edit().putString("AUTH_CODE", authCode).apply()
+
+            viewModel.exchangeCodeForToken(authCode, sharedPreferences)
 
             navController.navigate("HomeScreen") {
                 popUpTo("LoginScreen") { inclusive = true }
