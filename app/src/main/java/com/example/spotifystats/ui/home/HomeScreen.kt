@@ -55,7 +55,6 @@ fun HomeScreen(
 ){
     val context = LocalContext.current
 
-    // 👉 2. GRAB THE ACCESS TOKEN FROM THE NOTEBOOK
     val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
     val accessToken = sharedPreferences.getString("ACCESS_TOKEN", "") ?: ""
 

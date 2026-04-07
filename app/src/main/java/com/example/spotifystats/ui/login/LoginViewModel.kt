@@ -3,7 +3,6 @@ package com.example.spotifystats.ui.login
 import android.content.Intent
 import android.util.Base64
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spotifystats.BuildConfig
@@ -52,7 +51,11 @@ class LoginViewModel : ViewModel(){
         }
     }
 
-    fun exchangeCodeForToken(authCode: String, sharedPreferences: SharedPreferences) {
+    fun exchangeCodeForToken(
+        authCode: String,
+        sharedPreferences: SharedPreferences,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 val retrofit = Retrofit.Builder()
@@ -78,7 +81,10 @@ class LoginViewModel : ViewModel(){
                 sharedPreferences.edit {
                     putString("ACCESS_TOKEN", response.accessToken)
                         .putString("REFRESH_TOKEN", response.refreshToken)
+                        .apply()
                 }
+                Log.d("SPOTIFY_AUTH", "TOKENS SAVED SUCCESSFULLY!")
+                onSuccess()
 
             } catch (e: Exception) {
                 Log.e("SPOTIFY_AUTH", "Network Error: ${e.message}")
