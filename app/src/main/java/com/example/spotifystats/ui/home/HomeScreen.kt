@@ -46,7 +46,8 @@ import com.example.spotifystats.data.Artist
 import com.example.spotifystats.ui.theme.SpotifyStatsTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-
+import com.example.spotifystats.data.Track
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun HomeScreen(
@@ -65,10 +66,14 @@ fun HomeScreen(
     ) {
 
         val artists by viewModel.artists.collectAsState()
+        val tracks by viewModel.tracks.collectAsState()
 
         LaunchedEffect(Unit) {
             if (accessToken.isNotEmpty()) {
                 viewModel.fetchTopArtists(accessToken)
+            }
+            if(accessToken.isNotEmpty()){
+                viewModel.fetchTopTracks(accessToken)
             }
         }
 
@@ -77,6 +82,12 @@ fun HomeScreen(
                 ArtistRow(
                     title = "Your Top Artists",
                     artists = artists
+                )
+            }
+            item {
+                TrackRow(
+                    title = "Top Songs",
+                    tracks = tracks
                 )
             }
         }
@@ -145,6 +156,77 @@ fun ArtistCard(artist: Artist) {
     }
 }
 
+@Composable
+fun TrackRow(
+    title: String,
+    tracks: List<Track>
+) {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(start = 16.dp, bottom = 12.dp, end = 16.dp)
+        )
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(tracks) { track ->
+                TrackCard(track = track)
+            }
+        }
+    }
+}
+
+@Composable
+fun TrackCard(track: Track) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.width(120.dp)
+    ) {
+        if (track.album.images.isNotEmpty()) {
+            AsyncImage(
+                model = track.album.images[0].url,
+                contentDescription = "Album cover for ${track.name}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.DarkGray)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = track.name,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        if (track.artists.isNotEmpty()) {
+            Text(
+                text = track.artists[0].name,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
 
 @Preview(
     showBackground = true

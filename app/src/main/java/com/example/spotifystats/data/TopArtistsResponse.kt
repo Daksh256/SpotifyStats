@@ -16,3 +16,4 @@ data class SpotifyImage(
     val height: Int,
     val width: Int
 )
+
