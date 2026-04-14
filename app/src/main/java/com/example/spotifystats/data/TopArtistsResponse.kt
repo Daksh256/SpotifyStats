@@ -1,5 +1,7 @@
 package com.example.spotifystats.data
 
+import com.google.gson.annotations.SerializedName
+
 data class TopArtistsResponse(
     val items: List<Artist>
 )
@@ -7,9 +9,9 @@ data class TopArtistsResponse(
 data class Artist(
     val id: String,
     val name: String,
-    val genres: List<String>,
-    val images: List<SpotifyImage>
+    val images: List<SpotifyImage>,
 )
+
 
 data class SpotifyImage(
     val url: String,

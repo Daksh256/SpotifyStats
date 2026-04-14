@@ -63,8 +63,6 @@ fun LoginScreen(
             //sharedPreferences.edit().putString("AUTH_CODE", authCode).apply()
 
             viewModel.exchangeCodeForToken(authCode, sharedPreferences) {
-
-                // This code will NOW wait until the tokens are 100% saved!
                 navController.navigate("HomeScreen") {
                     popUpTo("LoginScreen") { inclusive = true }
                 }

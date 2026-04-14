@@ -33,6 +33,9 @@ android {
         val clientSecret = localProperties.getProperty("SPOTIFY_CLIENT_SECRET") ?: ""
         buildConfigField("String", "SPOTIFY_CLIENT_SECRET", "\"$clientSecret\"")
 
+        val lastFmKey = localProperties.getProperty("lastFmApiKey") ?:"  "
+        buildConfigField("String","lastFmApiKey","\"$lastFmKey\"")
+
         manifestPlaceholders += mapOf(
             "redirectSchemeName" to "dakshstats",
             "redirectHostName" to "callback"
@@ -71,11 +74,11 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
     // Retrofit Libraries
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 
     // to load images
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

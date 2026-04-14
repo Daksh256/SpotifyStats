@@ -59,37 +59,26 @@ fun HomeScreen(
     val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
     val accessToken = sharedPreferences.getString("ACCESS_TOKEN", "") ?: ""
 
+    val artists by viewModel.artists.collectAsState()
+    val tracks by viewModel.tracks.collectAsState()
+    val topGenres by viewModel.topGenres.collectAsState()
+
+    LaunchedEffect(Unit) {
+        if (accessToken.isNotEmpty()) {
+            viewModel.fetchTopArtists(accessToken)
+            viewModel.fetchTopTracks(accessToken)
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-
-        val artists by viewModel.artists.collectAsState()
-        val tracks by viewModel.tracks.collectAsState()
-
-        LaunchedEffect(Unit) {
-            if (accessToken.isNotEmpty()) {
-                viewModel.fetchTopArtists(accessToken)
-            }
-            if(accessToken.isNotEmpty()){
-                viewModel.fetchTopTracks(accessToken)
-            }
-        }
-
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                ArtistRow(
-                    title = "Your Top Artists",
-                    artists = artists
-                )
-            }
-            item {
-                TrackRow(
-                    title = "Top Songs",
-                    tracks = tracks
-                )
-            }
+            item { ArtistRow(title = "Your Top Artists", artists = artists) }
+            item { TrackRow(title = "Top Songs", tracks = tracks) }
+            item { GenreRow(topGenres) }
         }
     }
 }
@@ -224,6 +213,35 @@ fun TrackCard(track: Track) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+    }
+}
+
+@Composable
+fun GenreRow(
+    genres: List<String>
+) {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Text(
+            text = "Your Top Genres",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp, start = 16.dp , end = 16.dp)
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(genres) { genre ->
+                Text(
+                    text = genre.uppercase(),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .background(Color(0xFF1DB954), shape = CircleShape)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
     }
 }
