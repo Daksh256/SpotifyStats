@@ -62,11 +62,13 @@ fun HomeScreen(
     val artists by viewModel.artists.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val topGenres by viewModel.topGenres.collectAsState()
+    val recentlyPlayed by viewModel.recentlyPlayed.collectAsState()
 
     LaunchedEffect(Unit) {
         if (accessToken.isNotEmpty()) {
             viewModel.fetchTopArtists(accessToken)
             viewModel.fetchTopTracks(accessToken)
+            viewModel.fetchRecentlyPlayed(accessToken)
         }
     }
 
@@ -79,6 +81,7 @@ fun HomeScreen(
             item { ArtistRow(title = "Your Top Artists", artists = artists) }
             item { TrackRow(title = "Top Songs", tracks = tracks) }
             item { GenreRow(topGenres) }
+            item { TrackRow(title = "Recently Played", tracks = recentlyPlayed) }
         }
     }
 }

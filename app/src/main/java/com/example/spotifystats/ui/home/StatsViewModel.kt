@@ -24,6 +24,7 @@ class StatsViewModel : ViewModel() {
         .build()
         .create(SpotifyApiService::class.java)
 
+
     private val _artists = MutableStateFlow<List<Artist>>(emptyList())
     val artists = _artists.asStateFlow()
 
@@ -32,6 +33,9 @@ class StatsViewModel : ViewModel() {
 
     private val _topGenres = MutableStateFlow<List<String>>(emptyList())
     val topGenres = _topGenres.asStateFlow()
+
+    private val _recentlyPlayed = MutableStateFlow<List<Track>>(emptyList())
+    val recentlyPlayed = _recentlyPlayed.asStateFlow()
 
     fun fetchTopArtists(accessToken: String) {
         viewModelScope.launch {
@@ -49,6 +53,8 @@ class StatsViewModel : ViewModel() {
                     .baseUrl("https://ws.audioscrobbler.com/")
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
+
+
 
                 val lastFmService = lastFmRetrofit.create(LastFmApiService::class.java)
 
@@ -91,6 +97,20 @@ class StatsViewModel : ViewModel() {
                 )
                 _tracks.value = response.items
             } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun fetchRecentlyPlayed(accessToken: String){
+        viewModelScope.launch {
+            try {
+                val response = service.getRecentlyPlayed(
+                    token = "Bearer $accessToken"
+                )
+                val tracksOnly = response.items.map { it.track }
+                _recentlyPlayed.value = tracksOnly
+            } catch (e: Exception){
                 e.printStackTrace()
             }
         }

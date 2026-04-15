@@ -1,5 +1,6 @@
 package com.example.spotifystats.api
 
+import com.example.spotifystats.data.RecentlyPlayedResponse
 import com.example.spotifystats.data.TopArtistsResponse
 import com.example.spotifystats.data.TopTracksResponse
 import retrofit2.http.GET
@@ -20,4 +21,10 @@ interface SpotifyApiService {
         @Query("time_range") timeRange: String,
         @Query("limit") limit: Int = 50
     ): TopTracksResponse
+
+    @GET("v1/me/player/recently-played")
+    suspend fun getRecentlyPlayed(
+        @Header("Authorization") token: String,
+        @Query("limit") limit: Int = 50
+    ): RecentlyPlayedResponse
 }
