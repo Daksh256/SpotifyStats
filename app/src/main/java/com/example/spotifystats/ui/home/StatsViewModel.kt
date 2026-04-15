@@ -13,6 +13,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import kotlin.collections.emptyList
 import com.example.spotifystats.BuildConfig
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 class StatsViewModel : ViewModel() {
 
@@ -50,29 +52,26 @@ class StatsViewModel : ViewModel() {
 
                 val lastFmService = lastFmRetrofit.create(LastFmApiService::class.java)
 
-                val allGenres = mutableListOf<String>()
-                val lastFmAuth = "${BuildConfig.lastFmApiKey}:${BuildConfig.lastFmApiKey}"
-
-                response.items.take(50).forEach { artist ->
-                    try {
-                        val tagResponse = lastFmService.getArtistTags(
-                            artistName = artist.name,
-                            apiKey = lastFmAuth
-                        )
-                        val tags = tagResponse.topTags?.tags?.map { it.name } ?: emptyList()
-                        allGenres.addAll(tags.take(3))
-
-                    } catch (e: Exception) {
-
+                val deferredTags = response.items.take(50).map { artist ->
+                    async {
+                        try {
+                            val tagResponse = lastFmService.getArtistTags(
+                                artistName = artist.name,
+                                apiKey = BuildConfig.lastFmApiKey
+                            )
+                            tagResponse.topTags?.tags?.map { it.name }?.take(5) ?: emptyList()
+                        } catch (e: Exception) {
+                            emptyList<String>()
+                        }
                     }
                 }
 
+                val allGenres = deferredTags.awaitAll().flatten()
                 val calculatedGenres = allGenres
                     .groupingBy { it }.eachCount()
                     .entries.sortedByDescending { it.value }
                     .take(5)
                     .map { it.key }
-
 
                 _topGenres.value = calculatedGenres
                 android.util.Log.d("LAST_FM_TEST", "Successfully calculated genres from Last.fm: $calculatedGenres")
