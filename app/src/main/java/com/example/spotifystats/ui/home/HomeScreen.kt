@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,9 +64,12 @@ fun HomeScreen(
     val tracks by viewModel.tracks.collectAsState()
     val topGenres by viewModel.topGenres.collectAsState()
     val recentlyPlayed by viewModel.recentlyPlayed.collectAsState()
+    val currentlyPlaying by viewModel.currentlyPlaying.collectAsState()
+    val isPlaying by viewModel.isPlaying.collectAsState()
 
     LaunchedEffect(Unit) {
         if (accessToken.isNotEmpty()) {
+            viewModel.fetchCurrentlyPlaying(accessToken)
             viewModel.fetchTopArtists(accessToken)
             viewModel.fetchTopTracks(accessToken)
             viewModel.fetchRecentlyPlayed(accessToken)
@@ -82,6 +86,11 @@ fun HomeScreen(
             item { TrackRow(title = "Top Songs", tracks = tracks) }
             item { GenreRow(topGenres) }
             item { TrackRow(title = "Recently Played", tracks = recentlyPlayed) }
+            item {
+                currentlyPlaying?.let { track ->
+                    NowPlayingCard(track = track, isPlaying = isPlaying)
+                }
+            }
         }
     }
 }
@@ -249,6 +258,68 @@ fun GenreRow(
     }
 }
 
+
+@Composable
+fun NowPlayingCard(track: Track, isPlaying: Boolean) {
+    androidx.compose.foundation.layout.Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF1E1E1E))
+            .padding(12.dp)
+    ) {
+        if (track.album.images.isNotEmpty()) {
+            AsyncImage(
+                model = track.album.images[0].url,
+                contentDescription = "Album cover",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "NOW PLAYING",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF1DB954),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = track.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (track.artists.isNotEmpty()) {
+                Text(
+                    text = track.artists[0].name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        Icon(
+            painter = painterResource(
+                id = if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+            ),
+            contentDescription = if (isPlaying) "Playing" else "Paused",
+            tint = Color.White,
+            modifier = Modifier.size(32.dp)
+        )
+    }
+}
 @Preview(
     showBackground = true
 )

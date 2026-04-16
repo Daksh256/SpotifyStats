@@ -37,6 +37,12 @@ class StatsViewModel : ViewModel() {
     private val _recentlyPlayed = MutableStateFlow<List<Track>>(emptyList())
     val recentlyPlayed = _recentlyPlayed.asStateFlow()
 
+    private val _currentlyPlaying = MutableStateFlow<Track?>(null)
+    val currentlyPlaying = _currentlyPlaying.asStateFlow()
+
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying = _isPlaying.asStateFlow()
+
     fun fetchTopArtists(accessToken: String) {
         viewModelScope.launch {
             try {
@@ -112,6 +118,25 @@ class StatsViewModel : ViewModel() {
                 _recentlyPlayed.value = tracksOnly
             } catch (e: Exception){
                 e.printStackTrace()
+            }
+        }
+    }
+
+    fun fetchCurrentlyPlaying(accessToken: String) {
+        viewModelScope.launch {
+            try {
+                val response = service.getCurrentlyPlaying("Bearer $accessToken")
+                android.util.Log.d("NOW_PLAYING", "Code: ${response.code()}")
+                android.util.Log.d("NOW_PLAYING", "Body: ${response.body()}")
+                android.util.Log.d("NOW_PLAYING", "Track: ${response.body()?.track?.name}")
+                android.util.Log.d("NOW_PLAYING", "isPlaying: ${response.body()?.isPlaying}")
+
+                if (response.isSuccessful && response.code() != 204) {
+                    _currentlyPlaying.value = response.body()?.track
+                    _isPlaying.value = response.body()?.isPlaying ?: false
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("NOW_PLAYING", "Error: ${e.message}")
             }
         }
     }

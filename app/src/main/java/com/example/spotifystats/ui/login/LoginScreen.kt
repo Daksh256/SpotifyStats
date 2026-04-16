@@ -111,7 +111,8 @@ fun LoginScreen(
                     BuildConfig.SPOTIFY_CLIENT_ID,
                     AuthorizationResponse.Type.CODE,
                     "dakshstats://callback"
-                ).setScopes(arrayOf("user-top-read", "user-read-recently-played")).build()
+                ).setScopes(arrayOf("user-top-read", "user-read-recently-played", "user-read-currently-playing",
+                    "user-read-playback-state"   )).build()
 
                 val intent = AuthorizationClient.createLoginActivityIntent(context as Activity, request)
                 launcher.launch(intent)
