@@ -82,15 +82,15 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item { ArtistRow(title = "Your Top Artists", artists = artists) }
-            item { TrackRow(title = "Top Songs", tracks = tracks) }
-            item { GenreRow(topGenres) }
-            item { TrackRow(title = "Recently Played", tracks = recentlyPlayed) }
             item {
                 currentlyPlaying?.let { track ->
                     NowPlayingCard(track = track, isPlaying = isPlaying)
                 }
             }
+            item { ArtistRow(title = "Your Top Artists", artists = artists) }
+            item { TrackRow(title = "Top Songs", tracks = tracks) }
+            item { GenreRow(topGenres) }
+            item { TrackRow(title = "Recently Played", tracks = recentlyPlayed) }
         }
     }
 }

@@ -127,16 +127,41 @@ class StatsViewModel : ViewModel() {
             try {
                 val response = service.getCurrentlyPlaying("Bearer $accessToken")
                 android.util.Log.d("NOW_PLAYING", "Code: ${response.code()}")
-                android.util.Log.d("NOW_PLAYING", "Body: ${response.body()}")
-                android.util.Log.d("NOW_PLAYING", "Track: ${response.body()?.track?.name}")
-                android.util.Log.d("NOW_PLAYING", "isPlaying: ${response.body()?.isPlaying}")
+                if (response.code() == 204) {
+                    try {
+                        val historyResponse = service.getRecentlyPlayed(
+                            token = "Bearer $accessToken",
+                            limit = 1
+                        )
+                        val lastSong = historyResponse.items.firstOrNull()?.track
 
-                if (response.isSuccessful && response.code() != 204) {
-                    _currentlyPlaying.value = response.body()?.track
-                    _isPlaying.value = response.body()?.isPlaying ?: false
+                        _currentlyPlaying.value = lastSong
+                        _isPlaying.value = false
+
+                        android.util.Log.d("NOW_PLAYING", "Music stopped. Showing last played: ${lastSong?.name}")
+
+                    } catch (e: Exception) {
+                        _currentlyPlaying.value = null
+                        _isPlaying.value = false
+                    }
+
+                    return@launch
                 }
+
+                if (response.isSuccessful && response.body() != null) {
+                    val body = response.body()!!
+
+                    if (body.track != null) {
+                        _currentlyPlaying.value = body.track
+                        _isPlaying.value = body.isPlaying
+                        android.util.Log.d("NOW_PLAYING", "Currently Playing: ${body.track.name}")
+                    }
+                }
+
             } catch (e: Exception) {
                 android.util.Log.e("NOW_PLAYING", "Error: ${e.message}")
+                _currentlyPlaying.value = null
+                _isPlaying.value = false
             }
         }
     }
