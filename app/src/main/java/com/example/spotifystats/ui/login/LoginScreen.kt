@@ -63,7 +63,7 @@ fun LoginScreen(
             //sharedPreferences.edit().putString("AUTH_CODE", authCode).apply()
 
             viewModel.exchangeCodeForToken(authCode, sharedPreferences) {
-                navController.navigate("HomeScreen") {
+                navController.navigate("MainScreen") {
                     popUpTo("LoginScreen") { inclusive = true }
                 }
             }

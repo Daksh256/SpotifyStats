@@ -31,9 +31,7 @@ fun AppNavigation(viewModel: StatsViewModel){
             composable("MainScreen"){
                 MainScreen(viewModel = viewModel)
             }
-            composable("HomeScreen"){
-                HomeScreen(navController)
-            }
+
         }
 
     )
