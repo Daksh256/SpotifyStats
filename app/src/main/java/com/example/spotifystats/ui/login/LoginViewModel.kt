@@ -69,22 +69,28 @@ class LoginViewModel : ViewModel(){
                 val base64Auth = Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP)
                 val headerMap = "Basic $base64Auth"
 
-                val response = service.getAccessToken(
+                val response = service.fetchNewAccessToken(
                     authorization = headerMap,
+                    grantType = "authorization_code",
                     code = authCode,
                     redirectUri = "dakshstats://callback"
                 )
 
-                Log.d("SPOTIFY_AUTH", "SUCCESS! Access Token: ${response.accessToken}")
-                Log.d("SPOTIFY_AUTH", "SUCCESS! Refresh Token: ${response.refreshToken}")
+                if (response.isSuccessful && response.body() != null) {
+                    val tokens = response.body()!!
+                    Log.d("SPOTIFY_AUTH", "SUCCESS! Access Token: ${tokens.accessToken}")
+                    Log.d("SPOTIFY_AUTH", "SUCCESS! Refresh Token: ${tokens.refreshToken}")
 
-                sharedPreferences.edit {
-                    putString("ACCESS_TOKEN", response.accessToken)
-                        .putString("REFRESH_TOKEN", response.refreshToken)
-                        .apply()
+                    sharedPreferences.edit {
+                        putString("ACCESS_TOKEN", tokens.accessToken)
+                        putString("REFRESH_TOKEN", tokens.refreshToken)
+                        apply()
+                    }
+                    Log.d("SPOTIFY_AUTH", "TOKENS SAVED SUCCESSFULLY!")
+                    onSuccess()
+                } else {
+                    Log.e("SPOTIFY_AUTH", "Server rejected login: ${response.errorBody()?.string()}")
                 }
-                Log.d("SPOTIFY_AUTH", "TOKENS SAVED SUCCESSFULLY!")
-                onSuccess()
 
             } catch (e: Exception) {
                 Log.e("SPOTIFY_AUTH", "Network Error: ${e.message}")

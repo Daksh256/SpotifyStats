@@ -1,5 +1,6 @@
 package com.example.spotifystats.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spotifystats.api.LastFmApiService
@@ -13,8 +14,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import kotlin.collections.emptyList
 import com.example.spotifystats.BuildConfig
+import com.example.spotifystats.api.SpotifyAuthService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import android.util.Base64
 
 class StatsViewModel : ViewModel() {
 
@@ -24,7 +27,11 @@ class StatsViewModel : ViewModel() {
         .build()
         .create(SpotifyApiService::class.java)
 
-
+    private val spotifyAuthService = Retrofit.Builder()
+        .baseUrl("https://accounts.spotify.com/") // Notice the different URL
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(SpotifyAuthService::class.java)
     private val _artists = MutableStateFlow<List<Artist>>(emptyList())
     val artists = _artists.asStateFlow()
 
@@ -163,6 +170,31 @@ class StatsViewModel : ViewModel() {
                 _currentlyPlaying.value = null
                 _isPlaying.value = false
             }
+        }
+    }
+    suspend fun refreshSpotifyToken(refreshToken: String): String? {
+        return try {
+            val authString = "${BuildConfig.SPOTIFY_CLIENT_ID}:${BuildConfig.SPOTIFY_CLIENT_SECRET}"
+            val base64Auth = Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP)
+            val headerMap = "Basic $base64Auth"
+
+            val response = spotifyAuthService.refreshAccessToken(
+                authorization = headerMap,
+                grantType = "refresh_token",
+                refreshToken = refreshToken
+            )
+
+            if (response.isSuccessful && response.body() != null) {
+                val newAccessToken = response.body()!!.accessToken
+                Log.d("SPOTIFY_AUTH", "Successfully refreshed token! New Token: $newAccessToken")
+                return newAccessToken
+            } else {
+                Log.e("SPOTIFY_AUTH", "Refresh failed: ${response.errorBody()?.string()}")
+                return null
+            }
+        } catch (e: Exception) {
+            Log.e("SPOTIFY_AUTH", "Network error during refresh", e)
+            return null
         }
     }
 }
