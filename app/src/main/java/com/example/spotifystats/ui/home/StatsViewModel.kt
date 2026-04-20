@@ -50,12 +50,15 @@ class StatsViewModel : ViewModel() {
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying = _isPlaying.asStateFlow()
 
-    fun fetchTopArtists(accessToken: String) {
+    private val _selectedTimeRange = MutableStateFlow("short_term")
+    val selectedTimeRange = _selectedTimeRange.asStateFlow()
+
+    fun fetchTopArtists(accessToken: String, timeRange: String = "short_term") {
         viewModelScope.launch {
             try {
                 val response = service.getTopArtists(
                     token = "Bearer $accessToken",
-                    timeRange = "short_term"
+                    timeRange = timeRange
                 )
 
                 android.util.Log.d("GENRE_DEBUG", "Raw JSON: $response")
@@ -101,12 +104,12 @@ class StatsViewModel : ViewModel() {
         }
     }
 
-    fun fetchTopTracks(accessToken: String) {
+    fun fetchTopTracks(accessToken: String, timeRange: String = "short_term") {
         viewModelScope.launch {
             try {
                 val response = service.getTopTracks(
                     token = "Bearer $accessToken",
-                    timeRange = "short_term"
+                    timeRange = timeRange
                 )
                 _tracks.value = response.items
             } catch (e: Exception) {
@@ -196,5 +199,10 @@ class StatsViewModel : ViewModel() {
             Log.e("SPOTIFY_AUTH", "Network error during refresh", e)
             return null
         }
+    }
+    fun updateTimeRange(newRange: String, accessToken: String) {
+        _selectedTimeRange.value = newRange
+        fetchTopArtists(accessToken, newRange)
+        fetchTopTracks(accessToken, newRange)
     }
 }

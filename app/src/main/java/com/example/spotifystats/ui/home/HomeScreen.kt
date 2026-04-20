@@ -49,6 +49,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.spotifystats.data.Track
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 
 @Composable
 fun HomeScreen(
@@ -60,6 +62,7 @@ fun HomeScreen(
     val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
     val accessToken = sharedPreferences.getString("ACCESS_TOKEN", "") ?: ""
 
+    val currentRange by viewModel.selectedTimeRange.collectAsState()
     val artists by viewModel.artists.collectAsState()
     val tracks by viewModel.tracks.collectAsState()
     val topGenres by viewModel.topGenres.collectAsState()
@@ -81,6 +84,12 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
+        TimeRangeTabs(
+            selectedRange = currentRange,
+            onRangeSelected = { newApiString ->
+                viewModel.updateTimeRange(newApiString, accessToken)
+            }
+        )
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 currentlyPlaying?.let { track ->
@@ -318,6 +327,30 @@ fun NowPlayingCard(track: Track, isPlaying: Boolean) {
             tint = Color.White,
             modifier = Modifier.size(32.dp)
         )
+    }
+}
+
+@Composable
+fun TimeRangeTabs(
+    selectedRange: String,
+    onRangeSelected: (String) -> Unit
+) {
+    val tabs = listOf(
+        "1 Month" to "short_term",
+        "6 Months" to "medium_term",
+        "Lifetime" to "long_term"
+    )
+
+    val selectedIndex = tabs.indexOfFirst { it.second == selectedRange }.coerceAtLeast(0)
+
+    TabRow(selectedTabIndex = selectedIndex) {
+        tabs.forEachIndexed { index, (title, apiValue) ->
+            Tab(
+                selected = selectedIndex == index,
+                onClick = { onRangeSelected(apiValue) },
+                text = { Text(title) }
+            )
+        }
     }
 }
 @Preview(
