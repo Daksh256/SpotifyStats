@@ -53,7 +53,7 @@ class StatsViewModel : ViewModel() {
     private val _selectedTimeRange = MutableStateFlow("short_term")
     val selectedTimeRange = _selectedTimeRange.asStateFlow()
 
-    fun fetchTopArtists(accessToken: String, timeRange: String = "short_term") {
+    fun fetchTopArtists(accessToken: String, timeRange: String ) {
         viewModelScope.launch {
             try {
                 val response = service.getTopArtists(
@@ -104,7 +104,7 @@ class StatsViewModel : ViewModel() {
         }
     }
 
-    fun fetchTopTracks(accessToken: String, timeRange: String = "short_term") {
+    fun fetchTopTracks(accessToken: String, timeRange: String) {
         viewModelScope.launch {
             try {
                 val response = service.getTopTracks(

@@ -73,8 +73,8 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         if (accessToken.isNotEmpty()) {
             viewModel.fetchCurrentlyPlaying(accessToken)
-            viewModel.fetchTopArtists(accessToken)
-            viewModel.fetchTopTracks(accessToken)
+            viewModel.fetchTopArtists(accessToken,currentRange)
+            viewModel.fetchTopTracks(accessToken,currentRange)
             viewModel.fetchRecentlyPlayed(accessToken)
         }
     }
