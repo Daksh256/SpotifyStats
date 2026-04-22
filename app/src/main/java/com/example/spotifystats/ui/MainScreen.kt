@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -12,6 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.spotifystats.ui.Screen
+import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
+import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 import com.example.spotifystats.ui.home.HomeScreen
 import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.recap.RecapScreen
@@ -68,6 +71,14 @@ fun MainScreen(viewModel: StatsViewModel) {
 
             composable(Screen.Recap.route) {
                 RecapScreen()
+            }
+
+            composable("artist_detail") {
+                ArtistDetailScreen(navController = bottomNavController, viewModel = viewModel)
+            }
+
+            composable("track_detail") {
+                TrackDetailScreen(navController = bottomNavController, viewModel = viewModel)
             }
 
         }

@@ -1,8 +1,10 @@
 package com.example.spotifystats.ui.home
 
+import android.R.attr.onClick
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +53,7 @@ import com.example.spotifystats.data.Track
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import com.example.spotifystats.ui.home.ArtistCard
 
 @Composable
 fun HomeScreen(
@@ -96,10 +99,22 @@ fun HomeScreen(
                     NowPlayingCard(track = track, isPlaying = isPlaying)
                 }
             }
-            item { ArtistRow(title = "Your Top Artists", artists = artists) }
-            item { TrackRow(title = "Top Songs", tracks = tracks) }
+            item { ArtistRow(title = "Your Top Artists", artists = artists,
+                onArtistClick = { artist ->
+                    viewModel.selectArtist(artist)
+                    navController.navigate("artist_detail")
+                }) }
+            item { TrackRow(title = "Top Songs", tracks = tracks,
+                onTrackClick = { track ->
+                viewModel.selectTrack(track)
+                navController.navigate("track_detail")
+            }) }
             item { GenreRow(topGenres) }
-            item { TrackRow(title = "Recently Played", tracks = recentlyPlayed) }
+            item { TrackRow(title = "Recently Played", tracks = recentlyPlayed,
+                onTrackClick = { track ->
+                viewModel.selectTrack(track)
+                navController.navigate("track_detail")
+            }) }
         }
     }
 }
@@ -107,7 +122,8 @@ fun HomeScreen(
 @Composable
 fun ArtistRow(
     title: String,
-    artists: List<Artist>
+    artists: List<Artist>,
+    onArtistClick: (Artist) -> Unit
 ) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
@@ -115,7 +131,7 @@ fun ArtistRow(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
+            modifier = Modifier.padding(start = 16.dp, bottom = 12.dp, end = 16.dp)
         )
 
         LazyRow(
@@ -123,17 +139,18 @@ fun ArtistRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(artists) { artist ->
-                ArtistCard(artist = artist)
+                ArtistCard(artist = artist, onClick = { onArtistClick(artist) })
             }
         }
     }
 }
 
 @Composable
-fun ArtistCard(artist: Artist) {
+fun ArtistCard(artist: Artist, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(100.dp)
+        modifier = Modifier.width(100.dp).clickable { onClick() }
+
     ) {
         if (artist.images.isNotEmpty()) {
             AsyncImage(
@@ -169,7 +186,8 @@ fun ArtistCard(artist: Artist) {
 @Composable
 fun TrackRow(
     title: String,
-    tracks: List<Track>
+    tracks: List<Track>,
+    onTrackClick: (Track) -> Unit
 ) {
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
@@ -185,17 +203,17 @@ fun TrackRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(tracks) { track ->
-                TrackCard(track = track)
+                TrackCard(track = track, onClick = { onTrackClick(track) })
             }
         }
     }
 }
 
 @Composable
-fun TrackCard(track: Track) {
+fun TrackCard(track: Track, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier.width(120.dp)
+        modifier = Modifier.width(120.dp).clickable { onClick() }
     ) {
         if (track.album.images.isNotEmpty()) {
             AsyncImage(

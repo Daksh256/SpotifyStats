@@ -53,6 +53,24 @@ class StatsViewModel : ViewModel() {
     private val _selectedTimeRange = MutableStateFlow("short_term")
     val selectedTimeRange = _selectedTimeRange.asStateFlow()
 
+
+    private val _selectedArtist = MutableStateFlow<Artist?>(null)
+    val selectedArtist = _selectedArtist.asStateFlow()
+
+    private val _selectedTrack = MutableStateFlow<Track?>(null)
+    val selectedTrack = _selectedTrack.asStateFlow()
+
+    fun selectArtist(artist: Artist) {
+        _selectedArtist.value = artist
+    }
+
+    fun selectTrack(track: Track) {
+        _selectedTrack.value = track
+    }
+
+    private val _artistDetailGenres = MutableStateFlow<List<String>>(emptyList())
+    val artistDetailGenres = _artistDetailGenres.asStateFlow()
+
     fun fetchTopArtists(accessToken: String, timeRange: String ) {
         viewModelScope.launch {
             try {
@@ -204,5 +222,30 @@ class StatsViewModel : ViewModel() {
         _selectedTimeRange.value = newRange
         fetchTopArtists(accessToken, newRange)
         fetchTopTracks(accessToken, newRange)
+    }
+
+    fun fetchGenresForDetailScreen(artistName: String) {
+        _artistDetailGenres.value = emptyList()
+
+        viewModelScope.launch {
+            try {
+                val lastFmService = Retrofit.Builder()
+                    .baseUrl("https://ws.audioscrobbler.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(LastFmApiService::class.java)
+
+                val tagResponse = lastFmService.getArtistTags(
+                    artistName = artistName,
+                    apiKey = BuildConfig.lastFmApiKey
+                )
+
+                val tags = tagResponse.topTags?.tags?.map { it.name } ?: emptyList()
+                _artistDetailGenres.value = tags
+
+            } catch (e: Exception) {
+                _artistDetailGenres.value = emptyList()
+            }
+        }
     }
 }

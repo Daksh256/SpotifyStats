@@ -28,6 +28,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.spotifystats.MainScreen
+import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
+import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 //import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.login.LoginScreen
 
@@ -42,7 +44,6 @@ fun AppNavigation(viewModel: StatsViewModel) {
     var isRefreshing by remember { mutableStateOf(savedRefreshToken != null) }
     var hasValidAccessToken by remember { mutableStateOf(false) }
 
-    // 3. The Silent Background Worker
     LaunchedEffect(Unit) {
         if (savedRefreshToken != null) {
             val newAccessToken = viewModel.refreshSpotifyToken(savedRefreshToken)
