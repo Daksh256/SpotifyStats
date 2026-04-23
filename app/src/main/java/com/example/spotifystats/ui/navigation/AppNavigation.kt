@@ -80,8 +80,28 @@ fun AppNavigation(viewModel: StatsViewModel) {
                 composable("LoginScreen") {
                     LoginScreen(navController)
                 }
+
                 composable("MainScreen") {
-                    MainScreen(viewModel = viewModel)
+                    MainScreen(
+                        viewModel = viewModel,
+                        onLogout = {
+                            navController.navigate("LoginScreen") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                composable("MainScreen") {
+                    MainScreen(
+                        viewModel = viewModel,
+                        onLogout = {
+                            navController.navigate("LoginScreen") {
+                                // This clears the entire app history so they can't hit the back button to get back in!
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
                 }
             }
         )

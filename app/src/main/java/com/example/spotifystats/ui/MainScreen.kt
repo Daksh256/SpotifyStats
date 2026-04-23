@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.spotifystats.ui.Screen
+import com.example.spotifystats.ui.SettingsScreen
 import com.example.spotifystats.ui.detailScreen.AlbumDetailScreen
 import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
@@ -21,12 +22,13 @@ import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.recap.RecapScreen
 
 @Composable
-fun MainScreen(viewModel: StatsViewModel) {
+fun MainScreen(viewModel: StatsViewModel, onLogout: () -> Unit) {
     val bottomNavController = rememberNavController()
 
     val items = listOf(
         Screen.Home,
-        Screen.Recap
+        Screen.Recap,
+        Screen.Settings
     )
 
     Scaffold(
@@ -86,6 +88,12 @@ fun MainScreen(viewModel: StatsViewModel) {
                 AlbumDetailScreen(navController = bottomNavController, viewModel = viewModel)
             }
 
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onLogoutClick = onLogout
+                )
+            }
         }
     }
 }

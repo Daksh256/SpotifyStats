@@ -19,6 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import android.util.Base64
 import com.example.spotifystats.data.Album
+import com.example.spotifystats.data.UserProfile
 
 class StatsViewModel : ViewModel() {
 
@@ -79,6 +80,28 @@ class StatsViewModel : ViewModel() {
         _selectedAlbum.value = album
     }
 
+
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile = _userProfile.asStateFlow()
+
+    fun fetchUserProfile(accessToken: String) {
+        viewModelScope.launch {
+            try {
+                val token = "Bearer $accessToken"
+
+                val profile = service.getCurrentUserProfile(token)
+
+                _userProfile.value = profile
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun logout(context: android.content.Context) {
+        val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", android.content.Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+    }
     fun fetchTopArtists(accessToken: String, timeRange: String ) {
         viewModelScope.launch {
             try {

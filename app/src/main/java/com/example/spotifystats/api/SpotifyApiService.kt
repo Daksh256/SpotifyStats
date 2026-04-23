@@ -34,4 +34,9 @@ interface SpotifyApiService {
     suspend fun getCurrentlyPlaying(
         @Header("Authorization") token: String
     ): Response<CurrentlyPlayingResponse>
+
+    @GET("v1/me")
+    suspend fun getCurrentUserProfile(
+        @Header("Authorization") token: String
+    ): com.example.spotifystats.data.UserProfile
 }

@@ -19,3 +19,8 @@ data class SpotifyImage(
     val width: Int
 )
 
+data class UserProfile(
+    val display_name: String,
+    val images: List<SpotifyImage>
+)
+
