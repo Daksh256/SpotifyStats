@@ -28,6 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.spotifystats.MainScreen
+import com.example.spotifystats.ui.detailScreen.AlbumDetailScreen
 import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 //import com.example.spotifystats.ui.home.StatsViewModel

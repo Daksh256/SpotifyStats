@@ -15,7 +15,9 @@ data class Track(
 data class Album(
     val id: String,
     val name: String,
-    val images: List<SpotifyImage>
+    val images: List<SpotifyImage>,
+    val release_date: String = "",
+    val artists: List<Artist> = emptyList()
 )
 
 data class TrackArtist(

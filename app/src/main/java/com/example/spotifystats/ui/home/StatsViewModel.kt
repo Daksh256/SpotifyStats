@@ -18,6 +18,7 @@ import com.example.spotifystats.api.SpotifyAuthService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import android.util.Base64
+import com.example.spotifystats.data.Album
 
 class StatsViewModel : ViewModel() {
 
@@ -70,6 +71,13 @@ class StatsViewModel : ViewModel() {
 
     private val _artistDetailGenres = MutableStateFlow<List<String>>(emptyList())
     val artistDetailGenres = _artistDetailGenres.asStateFlow()
+
+    private val _selectedAlbum = MutableStateFlow<Album?>(null)
+    val selectedAlbum = _selectedAlbum.asStateFlow()
+
+    fun selectAlbum(album: Album) {
+        _selectedAlbum.value = album
+    }
 
     fun fetchTopArtists(accessToken: String, timeRange: String ) {
         viewModelScope.launch {

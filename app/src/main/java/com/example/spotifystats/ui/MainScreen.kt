@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.spotifystats.ui.Screen
+import com.example.spotifystats.ui.detailScreen.AlbumDetailScreen
 import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 import com.example.spotifystats.ui.home.HomeScreen
@@ -79,6 +80,10 @@ fun MainScreen(viewModel: StatsViewModel) {
 
             composable("track_detail") {
                 TrackDetailScreen(navController = bottomNavController, viewModel = viewModel)
+            }
+
+            composable("album_detail") {
+                AlbumDetailScreen(navController = bottomNavController, viewModel = viewModel)
             }
 
         }
