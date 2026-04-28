@@ -36,6 +36,12 @@ android {
         val lastFmKey = localProperties.getProperty("lastFmApiKey") ?:"  "
         buildConfigField("String","lastFmApiKey","\"$lastFmKey\"")
 
+        val supabaseUrl = localProperties.getProperty("SUPABASE_URL") ?: ""
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+
+        val supabaseKey = localProperties.getProperty("SUPABASE_ANON_KEY") ?: ""
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseKey\"")
+
         manifestPlaceholders += mapOf(
             "redirectSchemeName" to "dakshstats",
             "redirectHostName" to "callback"
@@ -79,6 +85,10 @@ dependencies {
 
     // to load images
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    //Supabase libraries
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.1.4")
+    implementation("io.ktor:ktor-client-android:2.3.7")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

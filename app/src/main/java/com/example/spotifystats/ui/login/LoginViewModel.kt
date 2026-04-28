@@ -17,7 +17,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import android.content.SharedPreferences
 import androidx.core.content.edit
-
+import com.example.spotifystats.api.SpotifyApiService
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.from
 sealed class LoginState{
     object Idle : LoginState()
     object Loading : LoginState()
@@ -87,6 +90,7 @@ class LoginViewModel : ViewModel(){
                         apply()
                     }
                     Log.d("SPOTIFY_AUTH", "TOKENS SAVED SUCCESSFULLY!")
+                    saveUserToSupabase(tokens.accessToken, tokens.refreshToken ?: "")
                     onSuccess()
                 } else {
                     Log.e("SPOTIFY_AUTH", "Server rejected login: ${response.errorBody()?.string()}")
@@ -97,5 +101,38 @@ class LoginViewModel : ViewModel(){
                 e.printStackTrace()
             }
         }
+    }
+}
+
+private suspend fun saveUserToSupabase(accessToken: String, refreshToken: String) {
+    try {
+        val supabase = createSupabaseClient(
+            supabaseUrl = BuildConfig.SUPABASE_URL,
+            supabaseKey = BuildConfig.SUPABASE_ANON_KEY
+        ) {
+            install(Postgrest)
+        }
+
+        val spotifyRetrofit = Retrofit.Builder()
+            .baseUrl("https://api.spotify.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val spotifyService = spotifyRetrofit.create(SpotifyApiService::class.java)
+        val userResponse = spotifyService.getCurrentUser("Bearer $accessToken")
+
+        if (userResponse.isSuccessful && userResponse.body() != null) {
+            val userId = userResponse.body()!!.id
+
+            supabase.from("users").upsert(
+                mapOf(
+                    "user_id" to userId,
+                    "refresh_token" to refreshToken
+                )
+            )
+            Log.d("SUPABASE", "User $userId saved to Supabase!")
+        }
+    } catch (e: Exception) {
+        Log.e("SUPABASE", "Failed to save user: ${e.message}")
     }
 }

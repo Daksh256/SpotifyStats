@@ -20,6 +20,7 @@ data class SpotifyImage(
 )
 
 data class UserProfile(
+    val id: String,
     val display_name: String,
     val images: List<SpotifyImage>
 )
