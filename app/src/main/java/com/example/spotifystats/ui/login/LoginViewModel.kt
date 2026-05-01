@@ -28,11 +28,11 @@ sealed class LoginState{
     data class Error(val message : String) : LoginState()
 }
 
-class LoginViewModel : ViewModel(){
+class LoginViewModel : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState.asStateFlow()
 
-    fun handleSpotifyLogin(resultCode : Int , intent: Intent?){
+    fun handleSpotifyLogin(resultCode: Int, intent: Intent?) {
         _loginState.value = LoginState.Loading
 
         val response = AuthorizationClient.getResponse(resultCode, intent)
@@ -43,10 +43,12 @@ class LoginViewModel : ViewModel(){
                 println("VIEWMODEL: SPOTIFY LOGIN SUCCESS! Token: $authCode")
                 _loginState.value = LoginState.Success(authCode)
             }
+
             AuthorizationResponse.Type.ERROR -> {
                 println("VIEWMODEL: SPOTIFY LOGIN ERROR: ${response.error}")
                 _loginState.value = LoginState.Error(response.error ?: "Unknown Error")
             }
+
             else -> {
                 println("VIEWMODEL: SPOTIFY LOGIN CANCELLED")
                 _loginState.value = LoginState.Idle
@@ -68,12 +70,12 @@ class LoginViewModel : ViewModel(){
 
                 val service = retrofit.create(SpotifyAuthService::class.java)
 
-                val authString = "${BuildConfig.SPOTIFY_CLIENT_ID}:${BuildConfig.SPOTIFY_CLIENT_SECRET}"
+                val authString =
+                    "${BuildConfig.SPOTIFY_CLIENT_ID}:${BuildConfig.SPOTIFY_CLIENT_SECRET}"
                 val base64Auth = Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP)
-                val headerMap = "Basic $base64Auth"
 
                 val response = service.fetchNewAccessToken(
-                    authorization = headerMap,
+                    authorization = "Basic $base64Auth",
                     grantType = "authorization_code",
                     code = authCode,
                     redirectUri = "dakshstats://callback"
@@ -81,19 +83,41 @@ class LoginViewModel : ViewModel(){
 
                 if (response.isSuccessful && response.body() != null) {
                     val tokens = response.body()!!
-                    Log.d("SPOTIFY_AUTH", "SUCCESS! Access Token: ${tokens.accessToken}")
-                    Log.d("SPOTIFY_AUTH", "SUCCESS! Refresh Token: ${tokens.refreshToken}")
 
+                    // Get Spotify user ID first
+                    val spotifyRetrofit = Retrofit.Builder()
+                        .baseUrl("https://api.spotify.com/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
+
+                    val spotifyService = spotifyRetrofit.create(SpotifyApiService::class.java)
+                    val userResponse = spotifyService.getCurrentUser("Bearer ${tokens.accessToken}")
+
+                    val userId = if (userResponse.isSuccessful) {
+                        userResponse.body()?.id ?: ""
+                    } else ""
+
+                    // Now save everything together
                     sharedPreferences.edit {
                         putString("ACCESS_TOKEN", tokens.accessToken)
                         putString("REFRESH_TOKEN", tokens.refreshToken)
+                        putString("USER_ID", userId)
                         apply()
                     }
-                    Log.d("SPOTIFY_AUTH", "TOKENS SAVED SUCCESSFULLY!")
-                    saveUserToSupabase(tokens.accessToken, tokens.refreshToken ?: "")
+
+                    Log.d("SPOTIFY_AUTH", "Tokens + userId saved: $userId")
+
+                    // Save to Supabase
+                    if (userId.isNotEmpty()) {
+                        saveUserToSupabase(userId, tokens.refreshToken)
+                    }
+
                     onSuccess()
                 } else {
-                    Log.e("SPOTIFY_AUTH", "Server rejected login: ${response.errorBody()?.string()}")
+                    Log.e(
+                        "SPOTIFY_AUTH",
+                        "Server rejected login: ${response.errorBody()?.string()}"
+                    )
                 }
 
             } catch (e: Exception) {
@@ -102,37 +126,37 @@ class LoginViewModel : ViewModel(){
             }
         }
     }
-}
 
-private suspend fun saveUserToSupabase(accessToken: String, refreshToken: String) {
-    try {
-        val supabase = createSupabaseClient(
-            supabaseUrl = BuildConfig.SUPABASE_URL,
-            supabaseKey = BuildConfig.SUPABASE_ANON_KEY
-        ) {
-            install(Postgrest)
-        }
+    private suspend fun saveUserToSupabase(accessToken: String, refreshToken: String?) {
+        try {
+            val supabase = createSupabaseClient(
+                supabaseUrl = "https://iozgaoujkfuiaeaqywjq.supabase.co",
+                supabaseKey = "sb_publishable_TkJ7kcoMqof5xPCjC5C4Ag_JkH_rXVS"
+            ) {
+                install(Postgrest)
+            }
 
-        val spotifyRetrofit = Retrofit.Builder()
-            .baseUrl("https://api.spotify.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            val spotifyRetrofit = Retrofit.Builder()
+                .baseUrl("https://api.spotify.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
-        val spotifyService = spotifyRetrofit.create(SpotifyApiService::class.java)
-        val userResponse = spotifyService.getCurrentUser("Bearer $accessToken")
+            val spotifyService = spotifyRetrofit.create(SpotifyApiService::class.java)
+            val userResponse = spotifyService.getCurrentUser("Bearer $accessToken")
 
-        if (userResponse.isSuccessful && userResponse.body() != null) {
-            val userId = userResponse.body()!!.id
+            if (userResponse.isSuccessful && userResponse.body() != null) {
+                val userId = userResponse.body()!!.id
 
-            supabase.from("users").upsert(
-                mapOf(
-                    "user_id" to userId,
-                    "refresh_token" to refreshToken
+                supabase.from("users").upsert(
+                    mapOf(
+                        "user_id" to userId,
+                        "refresh_token" to refreshToken
+                    )
                 )
-            )
-            Log.d("SUPABASE", "User $userId saved to Supabase!")
+                Log.d("SUPABASE", "User $userId saved to Supabase!")
+            }
+        } catch (e: Exception) {
+            Log.e("SUPABASE", "Failed to save user: ${e.message}")
         }
-    } catch (e: Exception) {
-        Log.e("SUPABASE", "Failed to save user: ${e.message}")
     }
 }

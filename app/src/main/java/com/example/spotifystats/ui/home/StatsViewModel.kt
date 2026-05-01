@@ -1,5 +1,6 @@
 package com.example.spotifystats.ui.home
 
+import android.R.attr.filter
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,8 +19,12 @@ import com.example.spotifystats.api.SpotifyAuthService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import android.util.Base64
+import com.example.spotifystats.api.SupabaseApiService
 import com.example.spotifystats.data.Album
 import com.example.spotifystats.data.UserProfile
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.from
 
 class StatsViewModel : ViewModel() {
 
@@ -55,6 +60,11 @@ class StatsViewModel : ViewModel() {
     private val _selectedTimeRange = MutableStateFlow("short_term")
     val selectedTimeRange = _selectedTimeRange.asStateFlow()
 
+    private val _minutesThisMonth = MutableStateFlow<Int?>(null)
+    val minutesThisMonth = _minutesThisMonth.asStateFlow()
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _selectedArtist = MutableStateFlow<Artist?>(null)
     val selectedArtist = _selectedArtist.asStateFlow()
@@ -277,6 +287,84 @@ class StatsViewModel : ViewModel() {
             } catch (e: Exception) {
                 _artistDetailGenres.value = emptyList()
             }
+        }
+    }
+    fun fetchMinutesThisMonth(userId: String) {
+        viewModelScope.launch {
+            try {
+                val url = "${BuildConfig.SUPABASE_URL}/rest/v1/streams" +
+                        "?user_id=eq.$userId" +
+                        "&select=duration_ms,played_at"
+
+                val retrofit = Retrofit.Builder()
+                    .baseUrl(BuildConfig.SUPABASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(SupabaseApiService::class.java)
+
+                val rows = retrofit.getStreams(
+                    url = url,
+                    apiKey = BuildConfig.SUPABASE_ANON_KEY,
+                    auth = "Bearer ${BuildConfig.SUPABASE_ANON_KEY}"
+                )
+
+                Log.d("SUPABASE", "Total rows fetched: ${rows.size}")
+
+                val now = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                val currentMonth = now.get(java.util.Calendar.MONTH) + 1
+                val currentYear = now.get(java.util.Calendar.YEAR)
+
+                Log.d("SUPABASE", "Filtering for month=$currentMonth year=$currentYear")
+
+                val filtered = rows.filter { row ->
+                    try {
+                        val cleaned = row.played_at
+                            .replace("Z", "+00:00")
+                            .take(19)
+                        val sdf = java.text.SimpleDateFormat(
+                            "yyyy-MM-dd'T'HH:mm:ss",
+                            java.util.Locale.getDefault()
+                        )
+                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        val date = sdf.parse(cleaned) ?: return@filter false
+
+                        val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                        cal.time = date
+
+                        val rowMonth = cal.get(java.util.Calendar.MONTH) + 1
+                        val rowYear = cal.get(java.util.Calendar.YEAR)
+
+                        Log.d("SUPABASE", "Row: ${row.played_at} → month=$rowMonth year=$rowYear")
+
+                        rowMonth == currentMonth && rowYear == currentYear
+                    } catch (e: Exception) {
+                        Log.e("SUPABASE", "Date parse failed for: ${row.played_at}")
+                        false
+                    }
+                }
+
+                Log.d("SUPABASE", "Filtered rows this month: ${filtered.size}")
+
+                val totalMs = filtered.sumOf { it.duration_ms ?: 0L }
+                _minutesThisMonth.value = (totalMs / 60000).toInt()
+
+                Log.d("SUPABASE", "Minutes this month: ${_minutesThisMonth.value}")
+
+            } catch (e: Exception) {
+                Log.e("SUPABASE", "Failed to fetch minutes: ${e.message}")
+            }
+        }
+    }
+
+    fun refreshAll(accessToken: String, userId: String) {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            fetchCurrentlyPlaying(accessToken)
+            fetchTopArtists(accessToken, _selectedTimeRange.value)
+            fetchTopTracks(accessToken, _selectedTimeRange.value)
+            fetchRecentlyPlayed(accessToken)
+            fetchMinutesThisMonth(userId)
+            _isRefreshing.value = false
         }
     }
 }
