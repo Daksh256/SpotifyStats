@@ -61,6 +61,8 @@ fun HomeScreen(
     val minutesThisMonth by viewModel.minutesThisMonth.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val trendData by viewModel.trendData.collectAsState()
+    val trendRange by viewModel.trendRange.collectAsState()
 
     val scope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -73,6 +75,7 @@ fun HomeScreen(
             viewModel.fetchRecentlyPlayed(accessToken)
             viewModel.fetchUserProfile(accessToken)
             if (userId.isNotEmpty()) viewModel.fetchMinutesThisMonth(userId)
+            if (userId.isNotEmpty()) viewModel.fetchTrendData(userId)
         }
     }
 
@@ -90,7 +93,6 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            // Header
             item {
                 Row(
                     modifier = Modifier
@@ -149,7 +151,7 @@ fun HomeScreen(
                                 .size(38.dp)
                                 .clip(CircleShape)
                                 .background(SpotifyGreen)
-                                .clickable { navController.navigate("profile") },
+                                .clickable { navController.navigate("Profile") },
                             contentAlignment = Alignment.Center
                         ) {
                             val initials = userProfile?.display_name
@@ -168,14 +170,12 @@ fun HomeScreen(
                 }
             }
 
-            // Now Playing
             item {
                 currentlyPlaying?.let { track ->
                     NowPlayingCard(track = track, isPlaying = isPlaying)
                 }
             }
 
-            // Stats Row
             item {
                 Row(
                     modifier = Modifier
@@ -257,7 +257,17 @@ fun HomeScreen(
                 }
             }
 
-            // Time Range Tabs
+            item {
+                ListeningTrendChart(
+                    trendData = trendData,
+                    selectedRange = trendRange,
+                    onRangeChange = { range ->
+                        viewModel.setTrendRange(range, userId)
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
             item {
                 TimeRangeTabs(
                     selectedRange = currentRange,

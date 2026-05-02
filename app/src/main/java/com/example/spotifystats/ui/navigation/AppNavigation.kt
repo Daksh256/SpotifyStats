@@ -97,7 +97,6 @@ fun AppNavigation(viewModel: StatsViewModel) {
                         viewModel = viewModel,
                         onLogout = {
                             navController.navigate("LoginScreen") {
-                                // This clears the entire app history so they can't hit the back button to get back in!
                                 popUpTo(0) { inclusive = true }
                             }
                         }

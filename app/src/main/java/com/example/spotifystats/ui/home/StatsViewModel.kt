@@ -35,7 +35,7 @@ class StatsViewModel : ViewModel() {
         .create(SpotifyApiService::class.java)
 
     private val spotifyAuthService = Retrofit.Builder()
-        .baseUrl("https://accounts.spotify.com/") // Notice the different URL
+        .baseUrl("https://accounts.spotify.com/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(SpotifyAuthService::class.java)
@@ -86,11 +86,110 @@ class StatsViewModel : ViewModel() {
     private val _selectedAlbum = MutableStateFlow<Album?>(null)
     val selectedAlbum = _selectedAlbum.asStateFlow()
 
+    private val _trendData = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val trendData = _trendData.asStateFlow()
+
+    private val _trendRange = MutableStateFlow("7d")
+    val trendRange = _trendRange.asStateFlow()
+
+    fun setTrendRange(range: String, userId: String){
+        _trendRange.value = range
+        fetchTrendData(userId,range)
+    }
     fun selectAlbum(album: Album) {
         _selectedAlbum.value = album
     }
 
+    fun fetchTrendData(userId: String, range: String = "7d") {
+        viewModelScope.launch {
+            try {
+                val url = "${BuildConfig.SUPABASE_URL}/rest/v1/streams" +
+                        "?user_id=eq.$userId" +
+                        "&select=duration_ms,played_at"
 
+                val retrofit = Retrofit.Builder()
+                    .baseUrl(BuildConfig.SUPABASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(SupabaseApiService::class.java)
+
+                val rows = retrofit.getStreams(
+                    url = url,
+                    apiKey = BuildConfig.SUPABASE_ANON_KEY,
+                    auth = "Bearer ${BuildConfig.SUPABASE_ANON_KEY}"
+                )
+
+                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+
+                val result: Map<String, Int> = when (range) {
+                    "7d" -> {
+                        val days = (6 downTo 0).map { daysAgo ->
+                            val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                            cal.add(java.util.Calendar.DAY_OF_YEAR, -daysAgo)
+                            val dayKey = java.text.SimpleDateFormat("EEE", java.util.Locale.getDefault())
+                                .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                                .format(cal.time)
+                            val dateKey = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                                .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                                .format(cal.time)
+                            dayKey to dateKey
+                        }
+                        days.associate { (dayKey, dateKey) ->
+                            val mins = rows.filter { row ->
+                                row.played_at.take(10) == dateKey
+                            }.sumOf { it.duration_ms ?: 0L }
+                            dayKey to (mins / 60000).toInt()
+                        }
+                    }
+                    "30d" -> {
+                        val weeks = listOf("W1", "W2", "W3", "W4")
+                        val now = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                        val currentMonth = now.get(java.util.Calendar.MONTH) + 1
+                        val currentYear = now.get(java.util.Calendar.YEAR)
+                        weeks.associateWith { week ->
+                            val weekNum = week.removePrefix("W").toInt()
+                            val mins = rows.filter { row ->
+                                try {
+                                    val date = sdf.parse(row.played_at.take(19)) ?: return@filter false
+                                    val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                                    cal.time = date
+                                    val rowMonth = cal.get(java.util.Calendar.MONTH) + 1
+                                    val rowYear = cal.get(java.util.Calendar.YEAR)
+                                    val dayOfMonth = cal.get(java.util.Calendar.DAY_OF_MONTH)
+                                    val rowWeek = ((dayOfMonth - 1) / 7) + 1
+                                    rowMonth == currentMonth && rowYear == currentYear && rowWeek == weekNum
+                                } catch (e: Exception) { false }
+                            }.sumOf { it.duration_ms ?: 0L }
+                            (mins / 60000).toInt()
+                        }
+                    }
+                    "dow" -> {
+                        val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        dayNames.associateWith { dayName ->
+                            val mins = rows.filter { row ->
+                                try {
+                                    val date = sdf.parse(row.played_at.take(19)) ?: return@filter false
+                                    val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"))
+                                    cal.time = date
+                                    val rowDay = java.text.SimpleDateFormat("EEE", java.util.Locale.getDefault())
+                                        .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                                        .format(cal.time)
+                                    rowDay == dayName
+                                } catch (e: Exception) { false }
+                            }.sumOf { it.duration_ms ?: 0L }
+                            (mins / 60000).toInt()
+                        }
+                    }
+                    else -> emptyMap()
+                }
+
+                _trendData.value = result
+            } catch (e: Exception) {
+                Log.e("SUPABASE", "Failed to fetch trend: ${e.message}")
+            }
+        }
+    }
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile = _userProfile.asStateFlow()
 
@@ -364,6 +463,8 @@ class StatsViewModel : ViewModel() {
             fetchTopTracks(accessToken, _selectedTimeRange.value)
             fetchRecentlyPlayed(accessToken)
             fetchMinutesThisMonth(userId)
+            _isRefreshing.value = false
+            fetchTrendData(userId, _trendRange.value) // add this
             _isRefreshing.value = false
         }
     }
