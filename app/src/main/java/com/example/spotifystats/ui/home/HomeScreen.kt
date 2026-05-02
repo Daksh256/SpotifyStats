@@ -151,7 +151,7 @@ fun HomeScreen(
                                 .size(38.dp)
                                 .clip(CircleShape)
                                 .background(SpotifyGreen)
-                                .clickable { navController.navigate("Profile") },
+                                .clickable { navController.navigate("settings") },
                             contentAlignment = Alignment.Center
                         ) {
                             val initials = userProfile?.display_name

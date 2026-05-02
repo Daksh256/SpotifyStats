@@ -175,13 +175,6 @@ fun SettingsScreen(
             MenuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MenuItem(
                     iconColor = CardBg2,
-                    iconContent = { Text("◷", color = TextGray, fontSize = 16.sp) },
-                    label = "Default time range",
-                    value = "1 Month",
-                    showChevron = true
-                )
-                MenuItem(
-                    iconColor = CardBg2,
                     iconContent = { Text("🔔", color = TextGray, fontSize = 13.sp) },
                     label = "Sync frequency",
                     value = "Every 15 min",
@@ -233,18 +226,6 @@ fun SettingsScreen(
                     Text("›", color = Color(0x66FF4444), fontSize = 18.sp)
                 }
             }
-        }
-
-        item {
-            Text(
-                text = "StatSync v1.0 · Made with Spotify",
-                fontSize = 11.sp,
-                color = TextDimmed,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-            )
         }
     }
 }
