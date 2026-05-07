@@ -33,9 +33,10 @@ import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 //import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.login.LoginScreen
+import com.example.spotifystats.ui.recap.RecapViewModel
 
 @Composable
-fun AppNavigation(viewModel: StatsViewModel) {
+fun AppNavigation(viewModel: StatsViewModel,recapViewModel: RecapViewModel) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
@@ -84,17 +85,7 @@ fun AppNavigation(viewModel: StatsViewModel) {
                 composable("MainScreen") {
                     MainScreen(
                         viewModel = viewModel,
-                        onLogout = {
-                            navController.navigate("LoginScreen") {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-
-                composable("MainScreen") {
-                    MainScreen(
-                        viewModel = viewModel,
+                        recapViewModel = recapViewModel,
                         onLogout = {
                             navController.navigate("LoginScreen") {
                                 popUpTo(0) { inclusive = true }

@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.navigation.AppNavigation
+import com.example.spotifystats.ui.recap.RecapViewModel
 import com.example.spotifystats.ui.theme.SpotifyStatsTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,9 +26,10 @@ class MainActivity : ComponentActivity() {
 
                 // 👉 1. Create the ViewModel here at the very top of the app
                 val viewModel: StatsViewModel = viewModel()
+                val recapViewModel: RecapViewModel = viewModel()
 
                 // 👉 2. Pass it down into your Navigation engine
-                AppNavigation(viewModel = viewModel)
+                AppNavigation(viewModel = viewModel, recapViewModel = recapViewModel)
 
             }
         }

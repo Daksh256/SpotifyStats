@@ -20,9 +20,10 @@ import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 import com.example.spotifystats.ui.home.HomeScreen
 import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.recap.RecapScreen
+import com.example.spotifystats.ui.recap.RecapViewModel
 
 @Composable
-fun MainScreen(viewModel: StatsViewModel, onLogout: () -> Unit) {
+fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogout: () -> Unit) {
     val bottomNavController = rememberNavController()
 
     val items = listOf(
@@ -73,7 +74,7 @@ fun MainScreen(viewModel: StatsViewModel, onLogout: () -> Unit) {
             }
 
             composable(Screen.Recap.route) {
-                RecapScreen()
+                RecapScreen(viewModel = recapViewModel)
             }
 
             composable("artist_detail") {
