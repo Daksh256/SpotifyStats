@@ -7,7 +7,8 @@ import retrofit2.http.Url
 
 data class StreamRow(
     @SerializedName("duration_ms") val duration_ms: Long?,
-    @SerializedName("played_at") val played_at: String
+    @SerializedName("played_at") val played_at: String,
+    @SerializedName("artist_id") val artist_id: String?
 )
 
 interface SupabaseApiService {
