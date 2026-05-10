@@ -74,7 +74,7 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
             }
 
             composable(Screen.Recap.route) {
-                RecapScreen(viewModel = recapViewModel)
+                RecapScreen(viewModel = recapViewModel,navController = bottomNavController)
             }
 
             composable("artist_detail") {
