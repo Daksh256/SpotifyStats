@@ -1,5 +1,6 @@
 package com.example.spotifystats.api
 
+import com.example.spotifystats.data.Artist
 import com.example.spotifystats.data.CurrentlyPlayingResponse
 import com.example.spotifystats.data.RecentlyPlayedResponse
 import com.example.spotifystats.data.TopArtistsResponse
@@ -7,6 +8,7 @@ import com.example.spotifystats.data.TopTracksResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface SpotifyApiService {
@@ -44,4 +46,10 @@ interface SpotifyApiService {
     suspend fun getCurrentUser(
         @Header("Authorization") token: String
     ): Response<com.example.spotifystats.data.UserProfile>
+
+    @GET("v1/artists/{id}")
+    suspend fun getArtist(
+        @Header("Authorization") token: String,
+        @Path("id") artistId: String
+    ): Artist
 }

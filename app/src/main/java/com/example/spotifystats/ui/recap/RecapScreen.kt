@@ -32,9 +32,17 @@ fun RecapScreen(
     navController: NavController,
     viewModel: RecapViewModel = viewModel()
 ) {
+
+
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("SpotifyStatsPrefs", Context.MODE_PRIVATE)
     val userId = sharedPreferences.getString("USER_ID", "") ?: ""
+
+    val accessToken = sharedPreferences.getString("ACCESS_TOKEN", "") ?: ""
+
+    LaunchedEffect(Unit) {
+        if (userId.isNotEmpty()) viewModel.fetchRecap(userId, accessToken)
+    }
 
     val isLoading by viewModel.isLoading.collectAsState()
     val recapMonth by viewModel.recapMonth.collectAsState()
@@ -45,9 +53,6 @@ fun RecapScreen(
     val topDay by viewModel.topDay.collectAsState()
     val totalArtists by viewModel.totalArtists.collectAsState()
 
-    LaunchedEffect(Unit) {
-        if (userId.isNotEmpty()) viewModel.fetchRecap(userId)
-    }
 
     Box(
         modifier = Modifier
@@ -144,12 +149,11 @@ fun RecapScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .border(2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
-                            .padding(horizontal = 3.dp, vertical = 3.dp)
                             .clickable { navController.navigate("recap_artists") }
                             .padding(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text = "Top Artists →",
+                            text = "Top Artist →",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

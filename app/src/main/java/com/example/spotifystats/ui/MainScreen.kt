@@ -19,6 +19,7 @@ import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 import com.example.spotifystats.ui.home.HomeScreen
 import com.example.spotifystats.ui.home.StatsViewModel
+import com.example.spotifystats.ui.recap.RecapArtistsSlide
 import com.example.spotifystats.ui.recap.RecapScreen
 import com.example.spotifystats.ui.recap.RecapViewModel
 
@@ -66,6 +67,7 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
             modifier = Modifier.padding(innerPadding)
         ) {
 
+
             composable(Screen.Home.route) {
                 HomeScreen(
                     navController = bottomNavController,
@@ -94,6 +96,13 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
                     viewModel = viewModel,
                     onLogoutClick = onLogout
                 )
+            }
+
+            composable("recap") {
+                RecapScreen(navController = bottomNavController, viewModel = recapViewModel)
+            }
+            composable("recap_artists") {
+                RecapArtistsSlide(navController = bottomNavController, viewModel = recapViewModel)
             }
         }
     }

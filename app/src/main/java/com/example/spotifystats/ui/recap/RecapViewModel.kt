@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.spotifystats.BuildConfig
+import com.example.spotifystats.api.SpotifyApiService
 import com.example.spotifystats.api.SupabaseApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +13,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class RecapViewModel : ViewModel() {
+
+    data class RecapArtist(
+        val artistId: String,
+        val artistName: String,
+        val imageUrl: String,
+        val playCount: Int
+    )
+
+    private val _topArtists = MutableStateFlow<List<RecapArtist>>(emptyList())
+    val topArtists = _topArtists.asStateFlow()
     private val _recapMonth = MutableStateFlow(currentMonthName())
     val recapMonth = _recapMonth.asStateFlow()
 
@@ -48,7 +59,7 @@ class RecapViewModel : ViewModel() {
     private fun currentYear(): Int =
         java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
 
-    fun fetchRecap(userId: String) {
+    fun fetchRecap(userId: String, accessToken: String) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -106,8 +117,41 @@ class RecapViewModel : ViewModel() {
                     }
 
                 _topDay.value = minutesByDay.maxByOrNull { it.value }?.key ?: "--"
-
                 _totalArtists.value = filtered.mapNotNull { it.artist_id }.distinct().size
+
+                val artistCounts = filtered
+                    .filter { it.artist_id != null }
+                    .groupBy { it.artist_id!! }
+                    .mapValues { (_, groupedRows) -> groupedRows.size }
+                    .entries
+                    .sortedByDescending { it.value }
+                    .take(5)
+
+                val spotifyService = Retrofit.Builder()
+                    .baseUrl("https://api.spotify.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(SpotifyApiService::class.java)
+
+                val enriched = artistCounts.mapNotNull { (artistId, playCount) ->
+                    try {
+                        val response = spotifyService.getArtist(
+                            token = "Bearer $accessToken",
+                            artistId = artistId
+                        )
+                        RecapArtist(
+                            artistId = artistId,
+                            artistName = response.name,
+                            imageUrl = response.images.firstOrNull()?.url ?: "",
+                            playCount = playCount
+                        )
+                    } catch (e: Exception) {
+                        Log.e("RECAP", "Failed to enrich artist $artistId: ${e.message}")
+                        null
+                    }
+                }
+
+                _topArtists.value = enriched
 
             } catch (e: Exception) {
                 Log.e("RECAP", "Failed: ${e.message}")
