@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -14,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -27,11 +27,11 @@ private val TextGray = Color(0xFF888888)
 private val TextDimmed = Color(0xFF555555)
 
 @Composable
-fun RecapArtistsSlide(
+fun RecapTracksSlide(
     navController: NavController,
     viewModel: RecapViewModel
 ) {
-    val topArtists by viewModel.topArtists.collectAsState()
+    val topTracks by viewModel.topTracks.collectAsState()
     val recapMonth by viewModel.recapMonth.collectAsState()
     val recapYear by viewModel.recapYear.collectAsState()
 
@@ -44,7 +44,7 @@ fun RecapArtistsSlide(
         Column(modifier = Modifier.fillMaxSize()) {
 
             Text(
-                text = "TOP ARTISTS",
+                text = "TOP SONGS",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = SpotifyGreen,
@@ -54,7 +54,7 @@ fun RecapArtistsSlide(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Your most played",
+                text = "Your anthems",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -70,11 +70,8 @@ fun RecapArtistsSlide(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                topArtists.forEachIndexed { index, artist ->
-                    ArtistRow(
-                        rank = index + 1,
-                        artist = artist
-                    )
+                topTracks.forEachIndexed { index, track ->
+                    TrackRow(rank = index + 1, track = track)
                 }
             }
 
@@ -102,11 +99,11 @@ fun RecapArtistsSlide(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .border(2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
-                        .clickable { navController.navigate("recap_tracks") }
+                        .clickable { navController.navigate("recap_genres") }
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Text(
-                        text = "Top Tracks →",
+                        text = "Top Genres →",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -118,7 +115,7 @@ fun RecapArtistsSlide(
 }
 
 @Composable
-private fun ArtistRow(rank: Int, artist: RecapViewModel.RecapArtist) {
+private fun TrackRow(rank: Int, track: RecapViewModel.RecapTrack) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -136,39 +133,47 @@ private fun ArtistRow(rank: Int, artist: RecapViewModel.RecapArtist) {
             modifier = Modifier.width(24.dp)
         )
 
-        if (artist.imageUrl.isNotEmpty()) {
+        if (track.albumArt.isNotEmpty()) {
             AsyncImage(
-                model = artist.imageUrl,
-                contentDescription = artist.artistName,
+                model = track.albumArt,
+                contentDescription = track.trackName,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(8.dp))
             )
         } else {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(CardBg2),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = artist.artistName.first().toString(),
+                    text = "♪",
                     color = TextGray,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 18.sp
                 )
             }
         }
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = artist.artistName,
+                text = track.trackName,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = track.artistName,
+                fontSize = 12.sp,
+                color = TextGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
 
@@ -179,7 +184,7 @@ private fun ArtistRow(rank: Int, artist: RecapViewModel.RecapArtist) {
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "${artist.playCount} plays",
+                text = "${track.playCount}x",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = SpotifyGreen

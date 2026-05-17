@@ -21,6 +21,7 @@ import com.example.spotifystats.ui.home.HomeScreen
 import com.example.spotifystats.ui.home.StatsViewModel
 import com.example.spotifystats.ui.recap.RecapArtistsSlide
 import com.example.spotifystats.ui.recap.RecapScreen
+import com.example.spotifystats.ui.recap.RecapTracksSlide
 import com.example.spotifystats.ui.recap.RecapViewModel
 
 @Composable
@@ -103,6 +104,10 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
             }
             composable("recap_artists") {
                 RecapArtistsSlide(navController = bottomNavController, viewModel = recapViewModel)
+            }
+
+            composable("recap_tracks") {
+                RecapTracksSlide(navController = bottomNavController, viewModel = recapViewModel)
             }
         }
     }

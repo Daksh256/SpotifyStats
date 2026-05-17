@@ -21,6 +21,17 @@ class RecapViewModel : ViewModel() {
         val playCount: Int
     )
 
+    data class RecapTrack(
+        val trackId: String,
+        val trackName: String,
+        val artistName: String,
+        val albumArt: String,
+        val playCount: Int
+    )
+
+    private val _topTracks = MutableStateFlow<List<RecapTrack>>(emptyList())
+    val topTracks = _topTracks.asStateFlow()
+
     private val _topArtists = MutableStateFlow<List<RecapArtist>>(emptyList())
     val topArtists = _topArtists.asStateFlow()
     private val _recapMonth = MutableStateFlow(currentMonthName())
@@ -63,9 +74,15 @@ class RecapViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                val spotifyService = Retrofit.Builder()
+                    .baseUrl("https://api.spotify.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(SpotifyApiService::class.java)
+
                 val url = "${BuildConfig.SUPABASE_URL}/rest/v1/streams" +
                         "?user_id=eq.$userId" +
-                        "&select=duration_ms,played_at,artist_id"
+                        "&select=duration_ms,played_at,artist_id,track_id"
 
                 val rows = Retrofit.Builder()
                     .baseUrl(BuildConfig.SUPABASE_URL)
@@ -127,11 +144,6 @@ class RecapViewModel : ViewModel() {
                     .sortedByDescending { it.value }
                     .take(5)
 
-                val spotifyService = Retrofit.Builder()
-                    .baseUrl("https://api.spotify.com/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-                    .create(SpotifyApiService::class.java)
 
                 val enriched = artistCounts.mapNotNull { (artistId, playCount) ->
                     try {
@@ -150,6 +162,34 @@ class RecapViewModel : ViewModel() {
                         null
                     }
                 }
+
+                val trackCounts = filtered
+                    .groupBy { it.track_id }
+                    .mapValues { (_, rows) -> rows.size }
+                    .entries
+                    .sortedByDescending { it.value }
+                    .take(5)
+
+                val enrichedTracks = trackCounts.mapNotNull { (trackId, playCount) ->
+                    try {
+                        val response = spotifyService.getTrack(
+                            token = "Bearer $accessToken",
+                            trackId = trackId
+                        )
+                        RecapTrack(
+                            trackId = trackId,
+                            trackName = response.name,
+                            artistName = response.artists.firstOrNull()?.name ?: "",
+                            albumArt = response.album.images.firstOrNull()?.url ?: "",
+                            playCount = playCount
+                        )
+                    } catch (e: Exception) {
+                        Log.e("RECAP", "Failed to enrich track $trackId: ${e.message}")
+                        null
+                    }
+                }
+
+                _topTracks.value = enrichedTracks
 
                 _topArtists.value = enriched
 

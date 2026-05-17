@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 fun TrackDetailScreen(navController: NavController, viewModel: StatsViewModel) {
     val trackState by viewModel.selectedTrack.collectAsState()
 
-    // 👉 1. Grab all top tracks so we can find the rank
     val allTracks by viewModel.tracks.collectAsState()
 
     val context = LocalContext.current
@@ -92,7 +91,6 @@ fun TrackDetailScreen(navController: NavController, viewModel: StatsViewModel) {
                     )
                 }
 
-                // 👉 4. STATS DASHBOARD: Display Rank and Duration
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -165,8 +163,3 @@ fun TrackDetailScreen(navController: NavController, viewModel: StatsViewModel) {
         }
     }
 }
-
-
-// NOTE: If you put ArtistDetailScreen and TrackDetailScreen in two different files,
-// you will need to copy the StatBox component here too! If they are in the same file,
-// you only need it once at the bottom of the file.
