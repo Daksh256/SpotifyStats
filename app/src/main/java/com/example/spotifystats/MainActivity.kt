@@ -23,12 +23,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SpotifyStatsTheme {
-
-                // 👉 1. Create the ViewModel here at the very top of the app
                 val viewModel: StatsViewModel = viewModel()
                 val recapViewModel: RecapViewModel = viewModel()
 
-                // 👉 2. Pass it down into your Navigation engine
                 AppNavigation(viewModel = viewModel, recapViewModel = recapViewModel)
 
             }

@@ -19,8 +19,11 @@ import com.example.spotifystats.ui.detailScreen.ArtistDetailScreen
 import com.example.spotifystats.ui.detailScreen.TrackDetailScreen
 import com.example.spotifystats.ui.home.HomeScreen
 import com.example.spotifystats.ui.home.StatsViewModel
+import com.example.spotifystats.ui.recap.RecapActiveDaySlide
 import com.example.spotifystats.ui.recap.RecapArtistsSlide
+import com.example.spotifystats.ui.recap.RecapGenresSlide
 import com.example.spotifystats.ui.recap.RecapScreen
+import com.example.spotifystats.ui.recap.RecapSummarySlide
 import com.example.spotifystats.ui.recap.RecapTracksSlide
 import com.example.spotifystats.ui.recap.RecapViewModel
 
@@ -108,6 +111,17 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
 
             composable("recap_tracks") {
                 RecapTracksSlide(navController = bottomNavController, viewModel = recapViewModel)
+            }
+            composable("recap_genres") {
+                RecapGenresSlide(navController = bottomNavController, viewModel = recapViewModel)
+            }
+
+            composable("recap_active_day") {
+                RecapActiveDaySlide(navController = bottomNavController, viewModel = recapViewModel)
+            }
+
+            composable("recap_summary") {
+                RecapSummarySlide(navController = bottomNavController, viewModel = recapViewModel)
             }
         }
     }

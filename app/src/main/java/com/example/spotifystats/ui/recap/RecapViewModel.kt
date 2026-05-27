@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import com.example.spotifystats.api.LastFmApiService
+import androidx.compose.foundation.layout.FlowRow
 
 class RecapViewModel : ViewModel() {
 
@@ -58,6 +60,11 @@ class RecapViewModel : ViewModel() {
     private val _totalArtists = MutableStateFlow(0)
     val totalArtists = _totalArtists.asStateFlow()
 
+    private val _topGenres = MutableStateFlow<List<String>>(emptyList())
+    val topGenres = _topGenres.asStateFlow()
+
+    private val _minutesByDay = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val minutesByDay = _minutesByDay.asStateFlow()
     private fun currentMonthName(): String {
         val cal = java.util.Calendar.getInstance()
         return java.text.SimpleDateFormat("MMMM", java.util.Locale.getDefault())
@@ -134,6 +141,7 @@ class RecapViewModel : ViewModel() {
                     }
 
                 _topDay.value = minutesByDay.maxByOrNull { it.value }?.key ?: "--"
+                _minutesByDay.value = minutesByDay
                 _totalArtists.value = filtered.mapNotNull { it.artist_id }.distinct().size
 
                 val artistCounts = filtered
@@ -192,6 +200,32 @@ class RecapViewModel : ViewModel() {
                 _topTracks.value = enrichedTracks
 
                 _topArtists.value = enriched
+
+                val lastFmService = Retrofit.Builder()
+                    .baseUrl("https://ws.audioscrobbler.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(LastFmApiService::class.java)
+
+                val genreResults = enriched.map { artist ->
+                    try {
+                        val tagResponse = lastFmService.getArtistTags(
+                            artistName = artist.artistName,
+                            apiKey = BuildConfig.lastFmApiKey
+                        )
+                        tagResponse.topTags?.tags?.map { it.name }?.take(3) ?: emptyList()
+                    } catch (e: Exception) { emptyList() }
+                }
+
+                val topGenres = genreResults.flatten()
+                    .groupingBy { it }
+                    .eachCount()
+                    .entries
+                    .sortedByDescending { it.value }
+                    .take(5)
+                    .map { it.key }
+
+                _topGenres.value = topGenres
 
             } catch (e: Exception) {
                 Log.e("RECAP", "Failed: ${e.message}")

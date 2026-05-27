@@ -19,12 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 
-private val SpotifyGreen = Color(0xFF1DB954)
-private val DarkBg = Color(0xFF0A0A0A)
-private val CardBg = Color(0xFF111111)
-private val CardBg2 = Color(0xFF1A1A1A)
-private val TextGray = Color(0xFF888888)
-private val TextDimmed = Color(0xFF555555)
 
 @Composable
 fun RecapTracksSlide(
