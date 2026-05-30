@@ -51,12 +51,16 @@ fun MainScreen(viewModel: StatsViewModel, recapViewModel: RecapViewModel, onLogo
                         label = { Text(screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
+
                             bottomNavController.navigate(screen.route) {
-                                popUpTo(bottomNavController.graph.findStartDestination().id) {
-                                    saveState = true
+                                bottomNavController.navigate(screen.route) {
+                                    popUpTo(bottomNavController.graph.findStartDestination().id) {
+                                        saveState = false
+                                    }
+                                    launchSingleTop = true
+
+                                    restoreState = false
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     )
