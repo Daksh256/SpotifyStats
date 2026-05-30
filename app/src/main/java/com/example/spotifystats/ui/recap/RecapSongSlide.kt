@@ -77,30 +77,30 @@ fun RecapTracksSlide(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .border(2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
+                        .background(CardBg2)
                         .clickable { navController.popBackStack() }
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = "← Back",
-                        fontSize = 16.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = TextGray
                     )
                 }
 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .border(2.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
+                        .background(SpotifyGreen)
                         .clickable { navController.navigate("recap_genres") }
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Text(
                         text = "Top Genres →",
-                        fontSize = 16.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.Black
                     )
                 }
             }
