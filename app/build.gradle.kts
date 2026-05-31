@@ -75,6 +75,8 @@ dependencies {
     //Spotify auth librarie
     implementation("com.spotify.android:auth:2.1.1")
 
+    implementation("androidx.compose.ui:ui-graphics:1.6.0")
+
     //Navigation Libraries
     val nav_version = "2.7.7"
     implementation("androidx.navigation:navigation-compose:$nav_version")
